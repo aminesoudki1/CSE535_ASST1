@@ -1,5 +1,6 @@
 package com.example.amine.cse535_asst1;
 
+import android.os.Handler;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -12,6 +13,8 @@ import android.widget.RadioGroup;
 import com.jjoe64.graphview.GraphView;
 import com.jjoe64.graphview.series.DataPoint;
 import com.jjoe64.graphview.series.LineGraphSeries;
+
+import java.util.Random;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
@@ -44,7 +47,17 @@ public class MainActivity extends AppCompatActivity {
     @BindView(R.id.rb_female)
     RadioButton rb_female;
 
+    @BindView(R.id.gv_graph)
+    GraphView graph;
 
+    //random to generate the random data points
+    final Random random = new Random();
+    //x is the x axis here refers to time
+    int x = 0;
+    //handler to schedule an update every 1 second.
+    final Handler handler = new Handler();
+    //reference to the runnable that we are running every second
+    Runnable r;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,29 +65,45 @@ public class MainActivity extends AppCompatActivity {
         ButterKnife.bind(this);
 
 
+        graph.getViewport().setScalable(true); // enables horizontal zooming and scrolling
+        graph.getViewport().setScalableY(true); // enables vertical zooming and scrolling
+
+
+        graph.setTitle("HeartBeat Monitor");
+
 
     }
 
     @OnClick(R.id.bt_run)
     public void run() {
         Log.d(TAG,"button run");
-        GraphView graph = (GraphView) findViewById(R.id.gv_graph);
-        LineGraphSeries<DataPoint> series = new LineGraphSeries<DataPoint>(new DataPoint[] {
-                new DataPoint(0, 1),
-                new DataPoint(1, 5),
-                new DataPoint(2, 3),
-                new DataPoint(3, 2),
-                new DataPoint(4, 6)
+        final LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[] {
+                new DataPoint(x, 0),
+
         });
-        graph.getViewport().setScalable(true); // enables horizontal zooming and scrolling
-        graph.getViewport().setScalableY(true); // enables vertical zooming and scrolling
+        x = x+1;
         graph.addSeries(series);
+        r = new Runnable() {
+            @Override
+            public void run() {
+
+                series.appendData(new DataPoint(x,random.nextDouble()),true,50,false);
+                x=x+1;
+                handler.postDelayed(this,1000);
+            }
+        };
+        //run after 1 sec
+        handler.postDelayed(r,1000);
 
     }
 
     @OnClick(R.id.bt_stop)
     public void stop() {
         Log.d(TAG,"button stop");
-
+        x = 0;
+        graph.removeAllSeries();
+        if(r!=null) {
+            handler.removeCallbacks(r);
+        }
     }
 }
