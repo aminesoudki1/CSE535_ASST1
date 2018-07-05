@@ -57,7 +57,11 @@ public class MainActivity extends AppCompatActivity {
     //handler to schedule an update every 1 second.
     final Handler handler = new Handler();
     //reference to the runnable that we are running every second
-    Runnable r;
+    Runnable run_every_interval;
+    //if the heart rate monitor is running
+    boolean running = false;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -76,24 +80,27 @@ public class MainActivity extends AppCompatActivity {
 
     @OnClick(R.id.bt_run)
     public void run() {
-        Log.d(TAG,"button run");
-        final LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[] {
-                new DataPoint(x, 0),
+        if(!running) {
+            Log.d(TAG, "button run");
+            final LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[]{
+                    new DataPoint(x, 0),
 
-        });
-        x = x+1;
-        graph.addSeries(series);
-        r = new Runnable() {
-            @Override
-            public void run() {
+            });
+            x = x + 1;
+            graph.addSeries(series);
+            run_every_interval = new Runnable() {
+                @Override
+                public void run() {
 
-                series.appendData(new DataPoint(x,random.nextDouble()),true,50,false);
-                x=x+1;
-                handler.postDelayed(this,1000);
-            }
-        };
-        //run after 1 sec
-        handler.postDelayed(r,1000);
+                    series.appendData(new DataPoint(x, random.nextDouble()), true, 50, false);
+                    x = x + 1;
+                    handler.postDelayed(this, 1000);
+                }
+            };
+            //run after 1 sec
+            running = true;
+            handler.postDelayed(run_every_interval, 1000);
+        }
 
     }
 
@@ -102,8 +109,9 @@ public class MainActivity extends AppCompatActivity {
         Log.d(TAG,"button stop");
         x = 0;
         graph.removeAllSeries();
-        if(r!=null) {
-            handler.removeCallbacks(r);
+        if(run_every_interval !=null) {
+            handler.removeCallbacks(run_every_interval);
+            running = false;
         }
     }
 }
