@@ -106,6 +106,11 @@ public class MainActivity extends AppCompatActivity {
             alertDialog.show();
         }
         else if(!running) {
+            et_age.setEnabled(false);
+            et_patient_name.setEnabled(false);
+            et_patient_id.setEnabled(false);
+            rb_male.setEnabled(false);
+            rb_female.setEnabled(false);
             Log.d(TAG, "button run");
 
             final LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
@@ -155,5 +160,11 @@ public class MainActivity extends AppCompatActivity {
             handler.removeCallbacks(run_every_interval);
             running = false;
         }
+
+        et_age.setEnabled(true);
+        et_patient_name.setEnabled(true);
+        et_patient_id.setEnabled(true);
+        rb_male.setEnabled(true);
+        rb_female.setEnabled(true);
     }
 }
