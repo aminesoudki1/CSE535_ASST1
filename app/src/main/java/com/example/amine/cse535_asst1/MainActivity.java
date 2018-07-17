@@ -70,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
     //update time
     long time = 1000;
     //number of points displayed on graph
-    int number_of_points = 1000;
+    int number_of_points = 10000;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -86,16 +86,18 @@ public class MainActivity extends AppCompatActivity {
         graph.setTitle("HeartBeat Monitor");
         graph.getViewport().setXAxisBoundsManual(true);
         graph.getViewport().setMinX(0);
-        graph.getViewport().setMaxX(20);
 
     }
     @OnClick(R.id.bt_run)
     public void run() {
-        if(et_age.getText().toString().isEmpty()) {
+        if(((et_age.getText().toString().isEmpty() || et_patient_id.getText().toString().isEmpty() ||
+                et_patient_name.getText().toString().isEmpty()) || (!rb_female.isChecked() &&
+                !rb_male.isChecked())) && !running) {
+
             AlertDialog alertDialog = new AlertDialog.Builder(this).create();
-            alertDialog.setTitle("Alert");
-            alertDialog.setMessage("Patient Information Not available");
-            alertDialog.setButton(AlertDialog.BUTTON_NEUTRAL, "OK",
+            alertDialog.setTitle("ALERT");
+            alertDialog.setMessage("Please Enter Patient Information!");
+            alertDialog.setButton(AlertDialog.BUTTON_POSITIVE, "OK",
                     new DialogInterface.OnClickListener() {
                         public void onClick(DialogInterface dialog, int which) {
                             dialog.dismiss();
@@ -103,14 +105,27 @@ public class MainActivity extends AppCompatActivity {
                     });
             alertDialog.show();
         }
-        if(!running) {
+        else if(!running) {
             Log.d(TAG, "button run");
-            final LineGraphSeries<DataPoint> series = new LineGraphSeries<>(new DataPoint[]{
-                    new DataPoint(x, 0),
 
-            });
+            final LineGraphSeries<DataPoint> series = new LineGraphSeries<>();
+            if(!dataPoints.isEmpty()) {
+                for(int i=0;i<dataPoints.size();i++) {
+                    series.appendData(dataPoints.get(i),true,number_of_points);
+                }
+
+                graph.getViewport().setXAxisBoundsManual(true);
+                graph.getViewport().setMinX(0);
+                graph.getViewport().setMaxX(dataPoints.size());
+
+            } else {
+                DataPoint dataPoint = new DataPoint(x,0);
+                dataPoints.add(dataPoint);
+                series.appendData(dataPoint,true,number_of_points);
+            }
             x = x + (double)(time)/1000;
             graph.addSeries(series);
+            series.setThickness(8);
             run_every_interval = new Runnable() {
                 @Override
                 public void run() {
@@ -133,9 +148,9 @@ public class MainActivity extends AppCompatActivity {
     @OnClick(R.id.bt_stop)
     public void stop() {
         Log.d(TAG,"button stop");
-        x = 0;
+        //x = 0;
         graph.removeAllSeries(); //clear graph
-        dataPoints.clear(); //clear array
+        //dataPoints.clear(); //clear array
         if(run_every_interval !=null) {
             handler.removeCallbacks(run_every_interval);
             running = false;
